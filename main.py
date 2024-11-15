@@ -1,5 +1,12 @@
+import os
 from tkinter import *
 from tkinter import messagebox
+
+# Definir rutas de las carpetas
+BASE_DIR = os.path.dirname('Login')  # Carpeta donde está este script
+ASSETS_DIR = os.path.join(BASE_DIR, 'assets')
+ICONS_DIR = os.path.join(ASSETS_DIR, 'icons')
+IMAGES_DIR = os.path.join(ASSETS_DIR, 'images')
 
 # Función: Verificación del Login
 def verificar_login():
@@ -16,11 +23,15 @@ login = Tk()
 login.title("Sistemas de Gestión de Reservas Toreto Gym") #Nombre de la ventana: Sistemas de Gestión de Reservas Toreto Gym
 login.geometry('816x500')  # Tamaño de la Ventana Principal
 login.config(bg="lightblue")  # Color de Fondo
-login.iconbitmap("Icono.ico") # Icono de la Ventana
-login.resizable(False, False)  # No permite aumentar o reducir la Ventana
 
-# Cargar y mostrar la imagen
-imagen_superior = PhotoImage(file="Información.png")  # Agregar imagen en la Ventana
+# Cargar el ícono de la ventana desde la carpeta icons
+login.iconbitmap(os.path.join(ICONS_DIR, "Icono.ico"))  # Ruta del ícono
+
+# No permite aumentar o reducir la Ventana
+login.resizable(False, False)
+
+# Cargar y mostrar la imagen desde la carpeta images
+imagen_superior = PhotoImage(file=os.path.join(IMAGES_DIR, "Información.png"))  # Ruta de la imagen
 label_imagen = Label(login, image=imagen_superior)
 label_imagen.place(x=0, y=0)  # Posición de la imagen
 
