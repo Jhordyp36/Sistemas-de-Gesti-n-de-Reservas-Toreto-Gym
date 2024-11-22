@@ -67,13 +67,11 @@ def crear_ventana_principal():
 
     # Creación de botones en una cuadrícula
     for i, (nombre, comando) in enumerate(botones):
-        boton = Button(frame_botones, text=nombre, font=("Helvetica", 12), width=20, height=2, 
-                       bg="lightblue", fg="black", command=comando)
+        boton = Button(frame_botones, text=nombre, font=("Helvetica", 12), width=20, height=2, bg="lightblue", fg="black", command=comando)
         boton.grid(row=i // 3, column=i % 3, padx=10, pady=10)
 
     # Botón de cerrar sesión
-    boton_cerrar = Button(ventana_principal, text="Cerrar sesión", font=("Helvetica", 12), 
-                          bg="red", fg="white", command=cerrar_sesion)
+    boton_cerrar = Button(ventana_principal, text="Cerrar sesión", font=("Helvetica", 12), bg="blue", fg="white", command=cerrar_sesion)
     boton_cerrar.pack(pady=20)
 
     ventana_principal.mainloop()
