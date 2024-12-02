@@ -6,7 +6,10 @@ from config.config import ICONS_DIR, IMAGES_DIR, DB_PATH  # Importa desde config
 from src.utils.helpers import centrar_ventana, cargar_icono
 from src.navegacion import navegar_a_ventana_principal
 
+intentos_restantes = 3  # Variable global para contar los intentos restantes
+
 def verificar_login(campo_usuario, campo_contrasena, campo_rol, login):
+    global intentos_restantes
     usuario = campo_usuario.get()
     contrasena = campo_contrasena.get()
     rol = campo_rol.get()
@@ -22,7 +25,21 @@ def verificar_login(campo_usuario, campo_contrasena, campo_rol, login):
         login.destroy()
         navegar_a_ventana_principal(rol)
     else:
-        messagebox.showerror("Error de login", "Usuario o contraseña incorrectos")
+        intentos_restantes -= 1
+        global label_intentos
+        label_intentos.config(text=f"Intentos restantes: {intentos_restantes}")
+        if intentos_restantes > 0:
+            messagebox.showerror(
+                "Error de login",
+                f"Usuario o contraseña incorrectos. Te quedan {intentos_restantes} intento(s)."
+            )
+        else:
+            messagebox.showerror(
+                "Error de login",
+                "Has alcanzado el límite de intentos. El programa se cerrará."
+            )
+            login.destroy()  # Cierra la ventana principal
+            exit()  # Cierra el programa por completo
 
 def registrar_usuario():
     ventana_registro = Toplevel()
@@ -56,7 +73,6 @@ def registrar_usuario():
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM usuarios WHERE usuario = ?", (usuario,))
         resultado = cursor.fetchone()
-
         if resultado:
             messagebox.showerror("Error", "El usuario ya existe.")
         else:
@@ -102,16 +118,38 @@ def crear_ventana_iniciar_sesion():
     Label(login, text="Contraseña:", font=("Helvetica", 12), bg="lightblue").place(x=200, y=420)
     campo_contrasena = Entry(login, font=("Helvetica", 12), show="*")
     campo_contrasena.place(x=300, y=420, width=200, height=25)
+    
+    global label_intentos
+    label_intentos = Label(login, text=f"Intentos restantes: {intentos_restantes}", font=("Helvetica", 10), bg="lightblue")
+    label_intentos.place(x=330, y=448)
 
     def presionar_enter(event):
         verificar_login(campo_usuario, campo_contrasena, rol_seleccionado, login)
+    
+    def recuperar_contrasena():
+        # print("Recuperar contraseña presionado")
+        messagebox.showinfo('Estamos en proceso', 'Estamos en proceso')
 
     campo_contrasena.bind("<Return>", presionar_enter)
 
-    Button(login, text="Iniciar sesión", font=("Helvetica", 12), command=lambda: verificar_login(campo_usuario, campo_contrasena, rol_seleccionado, login)).place(x=350, y=470, width=100, height=30)
-    Button(login, text="Registrarse", font=("Helvetica", 12), command=registrar_usuario).place(x=600, y=350, width=100, height=30)
+    Button(
+        login, 
+        text="Iniciar sesión", 
+        font=("Helvetica", 12), 
+        command=lambda: verificar_login(campo_usuario, campo_contrasena, rol_seleccionado, login)
+    ).place(x=350, y=470, width=100, height=30)
+    
+    Button(
+        login, 
+        text="Registrarse", 
+        font=("Helvetica", 12), 
+        command=registrar_usuario
+    ).place(x=600, y=350, width=100, height=30)
 
-    label_olvidada = Label(login, text="¿Olvidaste tu contraseña?", font=("Helvetica", 10, "italic"), bg="lightblue", fg="blue")
+    label_olvidada = Label(login, text="¿Olvidaste tu contraseña?", font=("Helvetica", 10, "italic"),bg="lightblue", fg="blue", cursor="hand2")
     label_olvidada.place(x=320, y=510)
+    
+    label_olvidada.bind("<Button-1>", lambda e: recuperar_contrasena())
+
 
     login.mainloop()
