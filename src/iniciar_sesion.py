@@ -1,124 +1,125 @@
-import sqlite3
 import os
-from tkinter import *
-from tkinter import messagebox
+import sqlite3
+import tkinter as tk
+from tkinter import Label, PhotoImage, messagebox
+from config.config import ICONS_DIR, IMAGES_DIR, DB_PATH  # Importa desde config
+from src.utils.helpers import centrar_ventana, cargar_icono
+from src.navegacion import navegar_a_ventana_principal
+import datetime  # Importa el módulo para manejar fechas y horas
 
-# Función para centrar la ventana
-def centrar_ventana(ventana, ancho, alto):
-    # Obtener las dimensiones de la pantalla
-    pantalla_ancho = ventana.winfo_screenwidth()
-    pantalla_alto = ventana.winfo_screenheight()
+intentos_restantes = 3  # Variable global para contar los intentos restantes
 
-    # Calcular la posición centrada
-    x = (pantalla_ancho - ancho) // 2
-    y = (pantalla_alto - alto) // 2
-
-    # Colocar la ventana en el centro
-    ventana.geometry(f'{ancho}x{alto}+{x}+{y}')
-
-# Función para verificar el login
-def verificar_login(campo_usuario, campo_contrasena, DB_PATH):
+def verificar_login(campo_usuario, campo_contrasena, campo_rol, login):
+    global intentos_restantes
     usuario = campo_usuario.get()
     contrasena = campo_contrasena.get()
+    rol = campo_rol.get()
 
-    # Conectar a la base de datos
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM usuarios WHERE usuario = ? AND contrasena = ?", (usuario, contrasena))
+    cursor.execute("SELECT * FROM usuarios WHERE usuario = ? AND contrasena = ? AND rol = ?", (usuario, contrasena, rol))
     resultado = cursor.fetchone()
-    conn.close()
 
     if resultado:
+        # Registrar fecha y hora de inicio de sesión
+        fecha_hora_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute("INSERT INTO logs (usuario, fecha_hora) VALUES (?, ?)", (usuario, fecha_hora_actual))
+        conn.commit()
+
         messagebox.showinfo("Login exitoso", "¡Bienvenido!")
-    else:
-        messagebox.showerror("Error de login", "Usuario o contraseña incorrectos")
-
-# Función para registrar un nuevo usuario
-def registrar_usuario(ICONS_DIR, DB_PATH):
-    # Crear una nueva ventana para el registro
-    ventana_registro = Toplevel()
-    ventana_registro.title("Registrar Usuario")
-    ventana_registro.config(bg="lightblue")
-    ventana_registro.iconbitmap(os.path.join(ICONS_DIR, "Icono.ico"))
-    ventana_registro.resizable(False, False)
-
-    # Centrar la ventana de registro
-    centrar_ventana(ventana_registro, 400, 300)
-
-    # Crear las etiquetas y campos de entrada para el registro
-    Label(ventana_registro, text="Nuevo Usuario:", font=("Helvetica", 12), bg="lightblue").place(x=35, y=50)
-    campo_usuario_registro = Entry(ventana_registro, font=("Helvetica", 12))
-    campo_usuario_registro.place(x=150, y=50, width=200, height=25)
-    Label(ventana_registro, text="Contraseña:", font=("Helvetica", 12), bg="lightblue").place(x=35, y=100)
-    campo_contrasena_registro = Entry(ventana_registro, font=("Helvetica", 12), show="*")
-    campo_contrasena_registro.place(x=150, y=100, width=200, height=25)
-
-    def guardar_usuario():
-        usuario = campo_usuario_registro.get()
-        contrasena = campo_contrasena_registro.get()
-
-        # Verificar si el usuario ya existe
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM usuarios WHERE usuario = ?", (usuario,))
-        resultado = cursor.fetchone()
-
-        if resultado:
-            messagebox.showerror("Error", "El usuario ya existe.")
-        else:
-            cursor.execute("INSERT INTO usuarios (usuario, contrasena) VALUES (?, ?)", (usuario, contrasena))
-            conn.commit()
-            messagebox.showinfo("Registro exitoso", "¡Usuario registrado exitosamente!")
-            ventana_registro.destroy()  # Cerrar la ventana de registro
-
         conn.close()
+        login.destroy()
+        navegar_a_ventana_principal(rol)
+    else:
+        intentos_restantes -= 1
+        global label_intentos
+        label_intentos.config(text=f"Intentos restantes: {intentos_restantes}")
+        if intentos_restantes > 0:
+            messagebox.showerror(
+                "Error de login",
+                f"Usuario o contraseña incorrectos. Te quedan {intentos_restantes} intento(s)."
+            )
+        else:
+            messagebox.showerror(
+                "Error de login",
+                "Has alcanzado el límite de intentos. El programa se cerrará."
+            )
+            conn.close()
+            login.destroy()
+            exit()
 
-    Button(ventana_registro, text="Registrar", font=("Helvetica", 12), command=guardar_usuario).place(x=150, y=150, width=100, height=30)
-    Button(ventana_registro, text="Regresar", font=("Helvetica", 12), command=ventana_registro.destroy).place(x=150, y=200, width=100, height=30)
+def recuperar_contrasena():
+    messagebox.showinfo('Estamos en proceso', 'Estamos en proceso')
 
-# Función para crear la ventana de login
-def crear_ventana_iniciar_sesion(ICONS_DIR, IMAGES_DIR, DB_PATH):
-    login = Tk()
+def crear_ventana_iniciar_sesion():
+    
+    default_font = ("Segoe UI", 12)
+    
+    login = tk.Tk()
     login.title("Sistemas de Gestión de Reservas Toreto Gym")
-    login.config(bg="lightblue")
-    login.iconbitmap(os.path.join(ICONS_DIR, "Icono.ico"))
+    login.config(bg="#272643")
     login.resizable(False, False)
-
-    # Centrar la ventana de login
-    centrar_ventana(login, 816, 500)
-
-    # Cargar imagen en la ventana
-    imagen_superior = PhotoImage(file=os.path.join(IMAGES_DIR, "Información.png"))
+    
+    # Aumento de la altura de la ventana para evitar la superposición
+    centrar_ventana(login, 816, 650)  # Aumento de la altura a 650 px
+    cargar_icono(login, ICONS_DIR)
+    
+    imagen_superior = PhotoImage(file=os.path.join(IMAGES_DIR, "Informacion.png"))
     label_imagen = Label(login, image=imagen_superior)
     label_imagen.place(x=0, y=0)
 
-    # Título y mensaje
-    label_titulo = Label(login, text="Bienvenido/a", font=("Helvetica", 18, "bold"), bg="lightblue")
-    label_titulo.place(x=322, y=255)
-    label_instruccion = Label(login, text="Ingresa tus datos para acceder", font=("Helvetica", 12), bg="lightblue")
-    label_instruccion.place(x=290, y=290)
+    # Frame central de la ventana con los campos de login
+    frame_login = tk.Frame(login, bg="#272643", padx=20, pady=20)
+    frame_login.place(relx=0.25, rely=0.39, relwidth=0.5, relheight=0.5)  # Ajustar el `rely` a 0.39
 
-    # Campos de usuario y contraseña
-    Label(login, text="Usuario:", font=("Helvetica", 12), bg="lightblue").place(x=200, y=320)
-    campo_usuario = Entry(login, font=("Helvetica", 12))
-    campo_usuario.place(x=200 + 100, y=320, width=200, height=25)
+    label_titulo = tk.Label(frame_login, text="Bienvenido/a", font=("Segoe UI", 18, "bold"), bg="#272643", fg="#ffffff")
+    label_titulo.grid(row=0, column=0, columnspan=2, pady=(0, 10))  # Agregar espacio solo en la parte inferior
 
-    Label(login, text="Contraseña:", font=("Helvetica", 12), bg="lightblue").place(x=200, y=370)
-    campo_contrasena = Entry(login, font=("Helvetica", 12), show="*")
-    campo_contrasena.place(x=200 + 100, y=370, width=200, height=25)
+    label_instruccion = tk.Label(frame_login, text="Ingresa tus datos para acceder", font=("Segoe UI", 12), bg="#272643", fg="#ffffff")
+    label_instruccion.grid(row=1, column=0, columnspan=2, pady=(0, 15))  # Más espacio entre instrucciones y campos
 
-    # Función que se ejecuta al presionar Enter
+    # Frame para los campos del formulario
+    frame_campos = tk.Frame(frame_login, bg="#272643")
+    frame_campos.grid(row=2, column=0, columnspan=2, pady=(0, 5))  # Agregar espacio debajo de los campos
+
+    # Campo de Rol
+    Label(frame_campos, text="Rol:", font=default_font, bg="#272643", fg="#ffffff").grid(row=0, column=0, sticky="w", padx=10, pady=5)
+    rol_seleccionado = tk.StringVar(value="Usuario")
+    roles = ["Administrador", "Usuario"]
+    campo_rol = tk.OptionMenu(frame_campos, rol_seleccionado, *roles)
+    campo_rol.config(font=default_font)
+    campo_rol.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
+
+    # Campo de Usuario
+    Label(frame_campos, text="Usuario:", font=default_font, bg="#272643", fg="#ffffff").grid(row=1, column=0, sticky="w", padx=10, pady=5)
+    campo_usuario = tk.Entry(frame_campos, font=default_font)
+    campo_usuario.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
+
+    # Campo de Contraseña
+    Label(frame_campos, text="Contraseña:", font=default_font, bg="#272643", fg="#ffffff").grid(row=2, column=0, sticky="w", padx=10, pady=5)
+    campo_contrasena = tk.Entry(frame_campos, font=default_font, show="*")
+    campo_contrasena.grid(row=2, column=1, padx=10, pady=(5, 1), sticky="ew")
+
+    # Intentos restantes
+    global label_intentos
+    label_intentos = tk.Label(frame_login, text=f"Intentos restantes: {intentos_restantes}", font=("Segoe UI", 10), bg="#272643", fg="#ff0000")
+    label_intentos.grid(row=3, column=0, columnspan=2, pady=5)  # Reducir el espacio debajo de "Intentos restantes"
+
+    # Funcionalidad para presionar Enter
     def presionar_enter(event):
-        verificar_login(campo_usuario, campo_contrasena, DB_PATH)
-
+        verificar_login(campo_usuario, campo_contrasena, rol_seleccionado, login)
+    
     campo_contrasena.bind("<Return>", presionar_enter)
 
-    # Botones de login y registro
-    Button(login, text="Iniciar sesión", font=("Helvetica", 12), command=lambda: verificar_login(campo_usuario, campo_contrasena, DB_PATH)).place(x=250 + 100, y=420, width=100, height=30)
-    Button(login, text="Registrarse", font=("Helvetica", 12), command=lambda: registrar_usuario(ICONS_DIR, DB_PATH)).place(x=600, y=350, width=100, height=30)
+    # Botón de Iniciar sesión
+    btn_iniciar_sesion = tk.Button(frame_login, text="Iniciar sesión", font=default_font, bg="#bae8e8", command=lambda: verificar_login(campo_usuario, campo_contrasena, rol_seleccionado, login))
+    btn_iniciar_sesion.grid(row=4, column=0, columnspan=2, pady=5)  # Espacio en la parte superior del botón
 
-    # Enlace de "Olvidé mi contraseña"
-    label_olvidada = Label(login, text="¿Olvidaste tu contraseña?", font=("Helvetica", 10, "italic"), bg="lightblue", fg="blue")
-    label_olvidada.place(x=320, y=460)
+    # Label para recuperar contraseña
+    label_olvidada = tk.Label(login, text="¿Olvidaste tu contraseña?", font=("Segoe UI", 10, "italic"), bg="#272643", fg="blue", cursor="hand2")
+    label_olvidada.place(relx=0.38, rely=0.87)  # Posición fija para esta etiqueta
 
+    label_olvidada.bind("<Button-1>", lambda e: recuperar_contrasena())
+
+    # Iniciar la aplicación
     login.mainloop()
