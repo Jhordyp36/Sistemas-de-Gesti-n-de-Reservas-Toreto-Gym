@@ -1,180 +1,167 @@
 import os
-import sqlite3
-from tkinter import *
-from tkinter import ttk
-from tkinter import messagebox
-from config.config import ICONS_DIR, IMAGES_DIR, DB_PATH  # Importa ICONS_DIR desde config
-from src.utils.helpers import centrar_ventana, cargar_icono
+from tkinter import CENTER, Button, Frame, Label, Menu, PhotoImage, Tk, messagebox
+from config.config import ICONS_DIR, IMAGES_DIR
+from src.utils.helpers import cargar_icono
 from src.navegacion import navegar_a_iniciar_sesion
+from src.clases_Entrenadores import ventana_ClasesEntrenadores
+from src.membresias_pagos import ventana_membresiaspagos_administrador, ventana_membresiaspagos_usuario
+from src.gestion_equipos import ventana_GestionEquipos
+from src.reportes_estadisticas import ventana_ReportesEstadisticas_usuario, ventana_ReportesEstadisticas_administrador
+from src.reservas import ventana_reservas_administrador, ventana_reservas_usuario
+from src.administracion_sistema import ventana_administracion
 
 def crear_ventana_principal(rol):
     # Configuración de la ventana principal
     ventana_principal = Tk()
     ventana_principal.title("Sistemas de Gestión de Reservas Toreto Gym")
-    ventana_principal.config(bg="#5688a8")
-    centrar_ventana(ventana_principal, 900, 500)
+    ventana_principal.state('zoomed')  # Pantalla completa
+    ventana_principal.configure(bg="#272643")  # Fondo oscuro similar al segundo ejemplo
+
+    # Cargar el ícono
     cargar_icono(ventana_principal, os.path.join(ICONS_DIR, "Icono.ico"))
-    
+
+    # Imagen de logotipo
     imagen_logotipo = PhotoImage(file=os.path.join(IMAGES_DIR, "Logotipo.png"))
-    label_imagen = Label(ventana_principal, image=imagen_logotipo, bg="#5688a8")
-    label_imagen.place(x=0, y=0)
+    label_imagen = Label(ventana_principal, image=imagen_logotipo, bg="#272643")
+    label_imagen.place(x=0, y=0, relwidth=1)
 
-    # Etiqueta de bienvenida
-    label = Label(
-        ventana_principal,
-        text=f"Bienvenido, {rol}",
-        font=("Helvetica", 18, "bold"),
-        bg="#5688a8",
-        fg="white"
-    )
-    label.pack(pady=15)
+    # Etiqueta de bienvenida (se coloca debajo de la imagen)
+    label = Label(ventana_principal, text=f"Bienvenido, {rol}", font=("Segoe UI", 18, "bold"), bg="#272643", fg="white")
+    label.place(relx=0.5, rely=0.2, anchor=CENTER)
 
-    # Frame para organizar los botones
-    frame_botones = Frame(ventana_principal, bg="#5688a8")
-    frame_botones.pack(pady=20)
+    # Crear barra de menú
+    barra_menu = Menu(ventana_principal, bg="#2c698d", fg="white")
+    ventana_principal.config(menu=barra_menu)
+
+    # Frame para organizar los botones (centrado)
+    frame_botones = Frame(ventana_principal, bg="#2c698d", padx=10, pady=10)
+    frame_botones.place(relx=0.5, rely=0.5, anchor=CENTER)  # Centrado en el medio de la ventana
 
     # Funciones de los botones
+    def abrir_administracion():
+        ventana_administracion()
+
     def abrir_reservas():
-        messagebox.showinfo("Reservas abiertas", "¡Estamos en proceso!")
+        if rol == "Administrador":
+            ventana_reservas_administrador()
+        else:
+            ventana_reservas_usuario()
 
     def abrir_clases_y_entrenadores():
-        messagebox.showinfo("Clases y Entrenadores abiertos", "¡Estamos en proceso!")
-
-    def abrir_usuarios():
-        # Crear ventana modal
-        ventana_usuarios = Toplevel()
-        ventana_usuarios.title("Gestión de Usuarios")
-        ventana_usuarios.config(bg="lightgray")
-        centrar_ventana(ventana_usuarios, 600, 400)
-        ventana_usuarios.grab_set()  # Hace la ventana modal
-        ventana_usuarios.resizable(False, False)
-
-        # Encabezado
-        Label(
-            ventana_usuarios,
-            text="Gestión de Usuarios",
-            font=("Helvetica", 16, "bold"),
-            bg="lightgray",
-            fg="black"
-        ).pack(pady=10)
-
-        # Frame para el Treeview
-        frame_tree = Frame(ventana_usuarios)
-        frame_tree.pack(padx=10, pady=10, fill=BOTH, expand=True)
-
-        # Configuración del Treeview
-        tree_agenda = ttk.Treeview(
-            frame_tree, columns=("Id", "Usuario", "Rol"), show="headings", height=10
-        )
-        tree_agenda.pack(fill=BOTH, expand=True)
-
-        # Configuración de las columnas
-        tree_agenda.heading("Id", text="ID")
-        tree_agenda.heading("Usuario", text="Usuario")
-        tree_agenda.heading("Rol", text="Rol")
-
-        tree_agenda.column("Id", anchor=CENTER, width=100)
-        tree_agenda.column("Usuario", anchor=W, width=200)
-        tree_agenda.column("Rol", anchor=W, width=150)
-
-        # Conexión a la base de datos para obtener usuarios
-        try:
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
-            cursor.execute("SELECT id, usuario, rol FROM usuarios")  # Obtenemos ID, usuario y rol
-            usuarios = cursor.fetchall()
-            conn.close()
-
-            # Insertar datos en el Treeview
-            if usuarios:
-                for id_usuario, usuario, rol in usuarios:
-                    tree_agenda.insert("", END, values=(id_usuario, usuario, rol))
-            else:
-                messagebox.showinfo("Información", "No hay usuarios registrados.")
-        except sqlite3.Error as e:
-            messagebox.showerror("Error", f"No se pudo conectar a la base de datos: {e}")
-
-        # Botón para regresar
-        def regresar():
-            ventana_usuarios.destroy()
-
-        boton_regresar = Button(
-            ventana_usuarios,
-            text="Regresar",
-            font=("Helvetica", 12),
-            bg="blue",
-            fg="white",
-            command=regresar
-        )
-        boton_regresar.pack(pady=10)
-
+        ventana_ClasesEntrenadores()
 
     def abrir_membresias():
-        messagebox.showinfo("Gestión de Membresías abierta", "¡Estamos en proceso!")
+        if rol == "Administrador":
+            ventana_membresiaspagos_administrador()
+        else:
+            ventana_membresiaspagos_usuario()
 
     def abrir_equipos():
-        messagebox.showinfo("Gestión de Equipos abierta", "¡Estamos en proceso!")
+        ventana_GestionEquipos()
 
     def abrir_reportes():
-        messagebox.showinfo("Reportes abiertos", "¡Estamos en proceso!")
+        if rol == "Administrador":
+            ventana_ReportesEstadisticas_administrador()
+        else:
+            ventana_ReportesEstadisticas_usuario()
 
-    def abrir_configuracion():
-        messagebox.showinfo("Configuración abierta", "¡Estamos en proceso!")
+    # Menú de soporte (siempre visible)
+    menu_soporte = Menu(barra_menu, tearoff=0)
+    barra_menu.add_cascade(label="Soporte", menu=menu_soporte)
+    menu_soporte.add_command(label="Ayuda", command=lambda: messagebox.showinfo("Soporte", "¡Estamos en proceso!"))
 
-    def abrir_soporte():
-        messagebox.showinfo("Soporte abierto", "¡Estamos en proceso!")
-        
-    
+    # Menú de Administración del Sistema (solo para administrador)
+    if rol == "Administrador":
+        menu_configuracion = Menu(barra_menu, tearoff=0)
+        barra_menu.add_cascade(label="Administración del Sistema", menu=menu_configuracion)
+        menu_configuracion.add_command(label="Opciones", command=abrir_administracion)
 
-    def cerrar_sesion():
-        ventana_principal.destroy()
-        navegar_a_iniciar_sesion()
+    # Creación de botones comunes
+    boton_reservas = Button(
+        frame_botones,
+        text="Reservas",
+        font=("Segoe UI", 12),
+        width=20,
+        height=2,
+        bg="#bae8e8",
+        fg="black",
+        command=abrir_reservas,
+        relief="groove",
+        bd=2
+    )
+    boton_reservas.grid(row=0, column=0, padx=10, pady=10)
 
-    # Botones según el rol
-    botones_administrador = [
-        ("Reservas", abrir_reservas),
-        ("Clases y Entrenadores", abrir_clases_y_entrenadores),
-        ("Gestión de Usuarios", abrir_usuarios),
-        ("Membresías y Pagos", abrir_membresias),
-        ("Gestión de Equipos", abrir_equipos),
-        ("Reportes y Estadísticas", abrir_reportes),
-        ("Configuración", abrir_configuracion),
-        ("Soporte y Ayuda", abrir_soporte),
-    ]
+    boton_membresias = Button(
+        frame_botones,
+        text="Membresías y Pagos",
+        font=("Segoe UI", 12),
+        width=20,
+        height=2,
+        bg="#bae8e8",
+        fg="black",
+        command=abrir_membresias,
+        relief="groove",
+        bd=2
+    )
+    boton_membresias.grid(row=1, column=0, padx=10, pady=10)
 
-    botones_usuario = [
-        ("Clases y Entrenadores", abrir_clases_y_entrenadores),
-        ("Membresías y Pagos", abrir_membresias),
-        ("Configuración", abrir_configuracion),
-        ("Soporte y Ayuda", abrir_soporte),
-    ]
+    boton_reportes = Button(
+        frame_botones,
+        text="Reportes y Estadísticas",
+        font=("Segoe UI", 12),
+        width=20,
+        height=2,
+        bg="#bae8e8",
+        fg="black",
+        command=abrir_reportes,
+        relief="groove",
+        bd=2
+    )
+    boton_reportes.grid(row=2, column=0, padx=10, pady=10)
 
-    # Determinar los botones a mostrar según el rol
-    botones = botones_administrador if rol == "Administrador" else botones_usuario
-
-    # Creación de botones en una cuadrícula
-    for i, (nombre, comando) in enumerate(botones):
-        boton = Button(
+    # Botones exclusivos para administrador
+    if rol == "Administrador":
+        boton_clases = Button(
             frame_botones,
-            text=nombre,
-            font=("Helvetica", 12),
+            text="Clases y Entrenadores",
+            font=("Segoe UI", 12),
             width=20,
             height=2,
-            bg="lightblue",
+            bg="#bae8e8",
             fg="black",
-            command=comando,
+            command=abrir_clases_y_entrenadores,
+            relief="groove",
+            bd=2
         )
-        boton.grid(row=i // 3, column=i % 3, padx=10, pady=10)
+        boton_clases.grid(row=0, column=1, padx=10, pady=10)
 
-    # Botón de cerrar sesión
+        boton_equipos = Button(
+            frame_botones,
+            text="Gestión de Equipos",
+            font=("Segoe UI", 12),
+            width=20,
+            height=2,
+            bg="#bae8e8",
+            fg="black",
+            command=abrir_equipos,
+            relief="groove",
+            bd=2
+        )
+        boton_equipos.grid(row=1, column=1, padx=10, pady=10)
+
+    # Botón de cerrar sesión dentro del frame_botones
     boton_cerrar = Button(
-        ventana_principal,
+        frame_botones,
         text="Cerrar sesión",
-        font=("Helvetica", 12),
-        bg="blue",
-        fg="white",
-        command=cerrar_sesion,
+        font=("Segoe UI", 12, "bold"),
+        width=20,
+        height=2,
+        bg="#e3f6f5",
+        fg="black",
+        command=lambda: ventana_principal.destroy() or navegar_a_iniciar_sesion(),
+        relief="groove",
+        bd=2
     )
-    boton_cerrar.pack(pady=20)
+    boton_cerrar.grid(row=3, column=0, columnspan=2, pady=20)  # Se pone en una nueva fila
 
     ventana_principal.mainloop()
