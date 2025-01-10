@@ -39,31 +39,38 @@ def crear_ventana_principal(rol):
 
     # Funciones de los botones
     def abrir_administracion():
-        ventana_administracion()
+        ventana_principal.destroy()  # Cierra la ventana principal
+        ventana_administracion(lambda: crear_ventana_principal(rol))
 
     def abrir_reservas():
+        ventana_principal.destroy()  # Cierra la ventana principal
         if rol == "Administrador":
-            ventana_reservas_administrador()
+            ventana_reservas_administrador(lambda: crear_ventana_principal(rol))
         else:
-            ventana_reservas_usuario()
+            ventana_reservas_usuario(lambda: crear_ventana_principal(rol))
 
     def abrir_clases_y_entrenadores():
-        ventana_ClasesEntrenadores()
+        ventana_principal.destroy()  # Cierra la ventana principal
+        ventana_ClasesEntrenadores(lambda: crear_ventana_principal(rol))
 
     def abrir_membresias():
+        ventana_principal.destroy()  # Cierra la ventana principal
         if rol == "Administrador":
-            ventana_membresiaspagos_administrador()
+            ventana_membresiaspagos_administrador(lambda: crear_ventana_principal(rol))
         else:
-            ventana_membresiaspagos_usuario()
+            ventana_membresiaspagos_usuario(lambda: crear_ventana_principal(rol))
 
     def abrir_equipos():
-        ventana_GestionEquipos()
+        ventana_principal.destroy()  # Cierra la ventana principal
+        ventana_GestionEquipos(lambda: crear_ventana_principal(rol))
 
     def abrir_reportes():
+        ventana_principal.destroy()  # Cierra la ventana principal
         if rol == "Administrador":
-            ventana_ReportesEstadisticas_administrador()
+            ventana_ReportesEstadisticas_administrador(lambda: crear_ventana_principal(rol))
         else:
-            ventana_ReportesEstadisticas_usuario()
+            ventana_ReportesEstadisticas_usuario(lambda: crear_ventana_principal(rol))
+
 
     # Menú de soporte (siempre visible)
     menu_soporte = Menu(barra_menu, tearoff=0)
@@ -150,18 +157,8 @@ def crear_ventana_principal(rol):
         boton_equipos.grid(row=1, column=1, padx=10, pady=10)
 
     # Botón de cerrar sesión dentro del frame_botones
-    boton_cerrar = Button(
-        frame_botones,
-        text="Cerrar sesión",
-        font=("Segoe UI", 12, "bold"),
-        width=20,
-        height=2,
-        bg="#e3f6f5",
-        fg="black",
-        command=lambda: ventana_principal.destroy() or navegar_a_iniciar_sesion(),
-        relief="groove",
-        bd=2
-    )
+    boton_cerrar = Button(frame_botones, text="Cerrar sesión", font=("Segoe UI", 12, "bold"), width=20, height=2, bg="#e3f6f5", fg="black",
+                          command=lambda: ventana_principal.destroy() or navegar_a_iniciar_sesion(), relief="groove", bd=2)
     boton_cerrar.grid(row=3, column=0, columnspan=2, pady=20)  # Se pone en una nueva fila
 
     ventana_principal.mainloop()

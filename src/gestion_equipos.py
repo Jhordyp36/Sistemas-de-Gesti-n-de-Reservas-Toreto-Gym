@@ -14,7 +14,7 @@ def editar_Elemento():
 def filtrar_Elemento():
     messagebox.showinfo("Muy pronto", "¡Estamos en proceso!")
 
-def ventana_GestionEquipos():
+def ventana_GestionEquipos(callback):
     # Configuración del tipo de letra
     default_font = ("Segoe UI", 12)
     header_font = ("Segoe UI", 14, "bold")
@@ -70,8 +70,12 @@ def ventana_GestionEquipos():
     tk.Button(frame_buttons_inventory, text="Eliminar", font=default_font, bg="#bae8e8", command=eliminar_Elemento).pack(side="left", padx=5)
 
     # Botón para regresar al menú principal
-    btn_regresar = tk.Button(equipo_window, text="Regresar al Menú Principal", font=default_font, bg="#bae8e8", command=equipo_window.destroy)
+    btn_regresar = tk.Button(equipo_window, text="Regresar al Menú Principal", font=default_font, bg="#bae8e8", command=lambda: regresar(callback, equipo_window))
     btn_regresar.place(relx=0.4, rely=0.92, relwidth=0.2, relheight=0.05)
 
     # Iniciar la aplicación
     equipo_window.mainloop()
+
+def regresar(callback, ventana):
+    ventana.destroy()  # Cierra la ventana actual
+    callback()  # Regresa al menú principal

@@ -4,7 +4,7 @@ from tkinter import ttk, messagebox
 def show_soon_message():
     messagebox.showinfo("Muy pronto", "¡Estamos en proceso!")
 
-def ventana_membresiaspagos_administrador():
+def ventana_membresiaspagos_administrador(callback):
     default_font = ("Segoe UI", 12)
     header_font = ("Segoe UI", 14, "bold")
     
@@ -156,14 +156,14 @@ def ventana_membresiaspagos_administrador():
     scrollbar_y_pagos.grid(row=1, column=4, sticky="ns")
     
     # Botón para regresar al menú principal
-    btn_regresar = tk.Button(admin_window, text="Regresar al Menú Principal", font=default_font, bg="#e3f6f5", command=admin_window.destroy)
+    btn_regresar = tk.Button(admin_window, text="Regresar al Menú Principal", font=default_font, bg="#e3f6f5", command=lambda: regresar(callback, admin_window))
     btn_regresar.place(relx=0.4, rely=0.92, relwidth=0.2, relheight=0.05)
 
 
     admin_window.mainloop()
 
 
-def ventana_membresiaspagos_usuario():
+def ventana_membresiaspagos_usuario(callback):
     default_font = ("Segoe UI", 12)
     header_font = ("Segoe UI", 14, "bold")
     user_window = tk.Tk()
@@ -301,8 +301,12 @@ def ventana_membresiaspagos_usuario():
     scrollbar_y_pagos_user.grid(row=1, column=2, sticky="ns")
     
     # Botón para regresar al menú principal
-    btn_regresar = tk.Button(user_window, text="Regresar al Menú Principal", font=default_font, bg="#e3f6f5", command=user_window.destroy)
+    btn_regresar = tk.Button(user_window, text="Regresar al Menú Principal", font=default_font, bg="#e3f6f5", command=lambda: regresar(callback, user_window))
     btn_regresar.place(relx=0.4, rely=0.92, relwidth=0.2, relheight=0.05)
 
 
     user_window.mainloop()
+
+def regresar(callback, ventana):
+    ventana.destroy()  # Cierra la ventana actual
+    callback()  # Regresa al menú principal

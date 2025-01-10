@@ -4,8 +4,8 @@ from tkinter import ttk
 from tkinter import messagebox
 from src.utils.helpers import cargar_icono
 from config.config import ICONS_DIR
-
-def ventana_reservas_administrador():
+    
+def ventana_reservas_administrador(callback):
     default_font = ("Segoe UI", 12)
     header_font = ("Segoe UI", 14, "bold")
 
@@ -45,12 +45,12 @@ def ventana_reservas_administrador():
     btn_historial = tk.Button(frame_buttons_reservas, text="Consultar Historial", font=default_font, bg="#bae8e8", command=lambda: messagebox.showinfo("Muy pronto", "Función en desarrollo"))
     btn_historial.pack(side="left", padx=5, pady=5)
 
-    btn_cerrar = tk.Button(admin_window, text="Cerrar", font=default_font, bg="#e3f6f5", command=admin_window.destroy)
+    btn_cerrar = tk.Button(admin_window, text="Cerrar", font=default_font, bg="#e3f6f5", command=lambda: regresar(callback, admin_window))
     btn_cerrar.place(relx=0.45, rely=0.92, relwidth=0.1, relheight=0.05)
 
     admin_window.mainloop()
 
-def ventana_reservas_usuario():
+def ventana_reservas_usuario(callback):
     default_font = ("Segoe UI", 12)
     header_font = ("Segoe UI", 14, "bold")
 
@@ -90,7 +90,12 @@ def ventana_reservas_usuario():
     btn_historial = tk.Button(frame_buttons_reservas, text="Consultar Historial", font=default_font, bg="#bae8e8", command=lambda: messagebox.showinfo("Muy pronto", "Función en desarrollo"))
     btn_historial.pack(side="left", padx=5, pady=5)
 
-    btn_cerrar = tk.Button(user_window, text="Cerrar", font=default_font, bg="#e3f6f5", command=user_window.destroy)
+    btn_cerrar = tk.Button(user_window, text="Cerrar", font=default_font, bg="#e3f6f5", command=lambda: regresar(callback, user_window))
     btn_cerrar.place(relx=0.45, rely=0.92, relwidth=0.1, relheight=0.05)
 
     user_window.mainloop()
+    
+
+def regresar(callback, ventana):
+    ventana.destroy()  # Cierra la ventana actual
+    callback()  # Regresa al menú principal

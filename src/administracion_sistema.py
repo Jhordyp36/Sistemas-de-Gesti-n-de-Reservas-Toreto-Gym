@@ -11,7 +11,7 @@ def conectar_base_datos():
         messagebox.showerror("Error de Base de Datos", f"Error al conectar con la base de datos: {e}")
 
 # Crear ventana principal
-def ventana_administracion():
+def ventana_administracion(callback):
     ventana = Tk()
     ventana.title("Administración del Sistema")
     ventana.state("zoomed")  # Abrir ventana en pantalla completa
@@ -166,6 +166,11 @@ def ventana_administracion():
     Button(frame_botones_principales, text="Auditoría", font=("Segoe UI", 14), bg="#bae8e8", command=cargar_auditoria, padx=20, pady=10).pack(side="left", padx=10)
     Button(frame_botones_principales, text="Gestión de Logs", font=("Segoe UI", 14), bg="#bae8e8", command=cargar_logs, padx=20, pady=10).pack(side="left", padx=10)
 
-
+    # Botón "Regresar al Menú Principal"
+    Button(frame_botones_principales, text="Regresar al Menú Principal", font=("Segoe UI", 14), bg="#d9534f", fg="white", padx=20, pady=10, command=lambda: regresar(callback, ventana)).pack(side="right", padx=10)
 
     ventana.mainloop()
+
+def regresar(callback, ventana):
+    ventana.destroy()  # Cierra la ventana actual
+    callback()  # Regresa al menú principal

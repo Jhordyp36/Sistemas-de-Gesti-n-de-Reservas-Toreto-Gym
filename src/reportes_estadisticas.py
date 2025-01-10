@@ -4,7 +4,7 @@ from tkinter import messagebox
 def generar_reporte():
     messagebox.showinfo("Muy pronto", "Esta funcionalidad estará disponible próximamente.")
 
-def ventana_ReportesEstadisticas_administrador():
+def ventana_ReportesEstadisticas_administrador(callback):
     # Configuración del tipo de letra
     default_font = ("Segoe UI", 12)
     header_font = ("Segoe UI", 14, "bold")
@@ -56,13 +56,13 @@ def ventana_ReportesEstadisticas_administrador():
         tk.Button(frame_derecho, text=boton, font=default_font, bg="#bae8e8", command=generar_reporte).pack(pady=5, fill="x")
 
     # Botón para regresar al menú principal
-    btn_regresar = tk.Button(admin_window, text="Regresar al Menú Principal", font=default_font, bg="#e3f6f5", command=admin_window.destroy)
+    btn_regresar = tk.Button(admin_window, text="Regresar al Menú Principal", font=default_font, bg="#e3f6f5", command=lambda: regresar(callback, admin_window))
     btn_regresar.place(relx=0.4, rely=0.92, relwidth=0.2, relheight=0.05)
 
     # Iniciar la aplicación
     admin_window.mainloop()
 
-def ventana_ReportesEstadisticas_usuario():
+def ventana_ReportesEstadisticas_usuario(callback):
     # Configuración del tipo de letra
     default_font = ("Segoe UI", 12)
     header_font = ("Segoe UI", 14, "bold")
@@ -92,10 +92,12 @@ def ventana_ReportesEstadisticas_usuario():
         tk.Button(frame_unico, text=boton, font=default_font, bg="#bae8e8", command=generar_reporte).pack(pady=5, fill="x")
 
     # Botón para regresar al menú principal
-    btn_regresar = tk.Button(user_window, text="Regresar al Menú Principal", font=default_font, bg="#e3f6f5", command=user_window.destroy)
+    btn_regresar = tk.Button(user_window, text="Regresar al Menú Principal", font=default_font, bg="#e3f6f5", command=lambda: regresar(callback, user_window))
     btn_regresar.place(relx=0.4, rely=0.92, relwidth=0.2, relheight=0.05)
 
     # Iniciar la aplicación
     user_window.mainloop()
 
-
+def regresar(callback, ventana):
+    ventana.destroy()  # Cierra la ventana actual
+    callback()  # Regresa al menú principal
