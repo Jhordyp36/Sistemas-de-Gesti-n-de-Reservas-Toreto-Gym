@@ -252,7 +252,7 @@ def ventana_administracion(usuario, callback):
         frame_formulario = Frame(frame_contenido, bg="#272643")
         frame_formulario.pack(pady=10)
 
-        campos = ["Cédula", "Apellidos", "Nombres", "Usuario", "Contraseña", "Rol"]
+        campos = ["Cédula", "Apellidos", "Nombres", "Usuario", "Telefono", "Correo", "Fecha Nacimiento", "Contraseña", "Rol"]
         entradas = {}
 
         for i, campo in enumerate(campos):
@@ -289,8 +289,8 @@ def ventana_administracion(usuario, callback):
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO usuarios (cedula, apellidos, nombres, usuario, contrasena, rol) VALUES (?, ?, ?, ?, ?, ?)",
-                (datos["Cédula"], datos["Apellidos"], datos["Nombres"], datos["Usuario"], datos["Contraseña"], datos["Rol"])
+                "INSERT INTO usuarios (cedula, apellidos, nombres, usuario, telefono, correo, fecha_nacimiento, contrasena, rol) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (datos["Cédula"], datos["Apellidos"], datos["Nombres"], datos["Usuario"], datos["Telefono"], datos ["Correo"], datos["Fecha Nacimiento"],datos["Contraseña"], datos["Rol"])
             )
             fecha_hora_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute("INSERT INTO logs (usuario, fecha_hora, accion) VALUES (?, ?, 'Creacion: Administracion de Usuarios')", (usuario, fecha_hora_actual))
