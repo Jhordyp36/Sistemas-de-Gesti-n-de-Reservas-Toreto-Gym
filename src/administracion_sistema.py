@@ -44,13 +44,14 @@ def ventana_administracion(usuario, callback):
         frame_botones.pack(side="top", fill="x")
 
         Button(frame_botones, text="Crear Administrador", font=("Segoe UI", 12), bg="#bae8e8", command=crear_administrador_vista).pack(side="left", padx=10, pady=10)
-        Button(frame_botones, text="Modificar Contraseña", font=("Segoe UI", 12), bg="#bae8e8", command=lambda: messagebox.showinfo("Modificar Contraseña", "Función en desarrollo")).pack(side="left", padx=10, pady=10)
+        Button(frame_botones, text="Modificar Contraseña", font=("Segoe UI", 12), bg="#bae8e8", command=lambda: modificar_contrasena(tabla)).pack(side="left", padx=10, pady=10)
         Button(frame_botones, text="Resetear Contraseña", font=("Segoe UI", 12), bg="#bae8e8", command=lambda: resetear_contrasena(tabla)).pack(side="left", padx=10, pady=10)
         Button(frame_botones, text="Eliminar Usuario", font=("Segoe UI", 12), bg="#bae8e8", command=lambda: eliminar_usuario(tabla)).pack(side="left", padx=10, pady=10)
 
-        # Tabla de usuarios
+        # Etiqueta de título
         Label(frame_contenido, text="Consultar Usuarios", font=("Segoe UI", 16), bg="#272643", fg="white").pack(pady=10)
-        
+
+        # Frame contenedor de la tabla
         frame_tabla = Frame(frame_contenido, bg="#272643")
         frame_tabla.pack(fill="both", expand=True)
 
@@ -60,17 +61,31 @@ def ventana_administracion(usuario, callback):
         Entry(frame_tabla, textvariable=busqueda_var, width=30).grid(row=0, column=1, padx=10, pady=5, sticky="w")
         Button(frame_tabla, text="Buscar", command=lambda: cargar_datos(tabla, busqueda_var.get())).grid(row=0, column=2, padx=10, pady=5)
 
+        # Scrollbars
+        scroll_x = Scrollbar(frame_tabla, orient="horizontal")
+        scroll_y = Scrollbar(frame_tabla, orient="vertical")
+
         # Tabla
-        columnas = ("cedula", "apellidos", "nombres", "usuario", "rol", "estado")
-        tabla = ttk.Treeview(frame_tabla, columns=columnas, show="headings")
+        columnas = ("cedula", "apellidos", "nombres", "usuario", "telefono", "correo", "rol", "estado")
+        tabla = ttk.Treeview(frame_tabla, columns=columnas, show="headings", xscrollcommand=scroll_x.set, yscrollcommand=scroll_y.set)
         tabla.grid(row=1, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
 
+        # Configurar las barras de desplazamiento
+        scroll_x.config(command=tabla.xview)
+        scroll_y.config(command=tabla.yview)
+        scroll_x.grid(row=2, column=0, columnspan=3, sticky="ew")
+        scroll_y.grid(row=1, column=3, sticky="ns")
+
+        # Encabezados y ajuste de anchos
         for col in columnas:
             tabla.heading(col, text=col.capitalize())
+            tabla.column(col, width=100, anchor="center")  # Ajusta el ancho según tus necesidades
 
+        # Ajustar tamaño del frame_tabla
         frame_tabla.grid_rowconfigure(1, weight=1)
         frame_tabla.grid_columnconfigure(0, weight=1)
 
+        # Cargar datos
         cargar_datos(tabla)
 
     # Función: Cargar datos en la tabla
@@ -80,10 +95,10 @@ def ventana_administracion(usuario, callback):
             return
 
         cursor = conn.cursor()
-        query = "SELECT cedula, apellidos, nombres, usuario, rol, estado FROM usuarios WHERE estado = 'A'"
+        query = "SELECT cedula, apellidos, nombres, usuario, telefono, correo, rol, estado FROM usuarios WHERE estado = 'A'"
         if filtro:
-            query += " AND (cedula LIKE ? OR apellidos LIKE ? OR nombres LIKE ? OR usuario LIKE ?)"
-            cursor.execute(query, (f"%{filtro}%", f"%{filtro}%", f"%{filtro}%", f"%{filtro}%"))
+            query += " AND (cedula LIKE ? OR apellidos LIKE ? OR nombres LIKE ? OR usuario LIKE ? OR telefono LIKE ? OR correo LIKE ?)"
+            cursor.execute(query, (f"%{filtro}%", f"%{filtro}%", f"%{filtro}%", f"%{filtro}%", f"%{filtro}%", f"%{filtro}%"))
         else:
             cursor.execute(query)
 
@@ -99,6 +114,66 @@ def ventana_administracion(usuario, callback):
             estado = "Eliminado" if fila[-1] == 'X' else "Activo"
             tabla.insert("", "end", values=fila[:-1] + (estado,))
 
+    def modificar_contrasena(tabla):
+        seleccion = tabla.selection()
+        if not seleccion:
+            messagebox.showwarning("Selección", "Por favor, seleccione un usuario para modificar su contraseña")
+            return
+
+        usuario_id = tabla.item(seleccion)["values"][0]
+
+        limpiar_contenido()
+
+        # Elementos de la ventana de modificación
+        Label(frame_contenido, text="Modificar Contraseña", font=("Segoe UI", 16), bg="#272643", fg="white").pack(pady=10)
+
+        # Etiquetas y entradas
+        Label(frame_contenido, text="Contraseña Actual", font=("Segoe UI", 12), bg="#272643", fg="white").pack(pady=5)
+        entry_actual = Entry(frame_contenido, show="*", font=("Segoe UI", 12))
+        entry_actual.pack(pady=5)
+
+        Label(frame_contenido, text="Nueva Contraseña", font=("Segoe UI", 12), bg="#272643", fg="white").pack(pady=5)
+        entry_nueva = Entry(frame_contenido, show="*", font=("Segoe UI", 12))
+        entry_nueva.pack(pady=5)
+
+        Label(frame_contenido, text="Repetir Nueva Contraseña", font=("Segoe UI", 12), bg="#272643", fg="white").pack(pady=5)
+        entry_repetir = Entry(frame_contenido, show="*", font=("Segoe UI", 12))
+        entry_repetir.pack(pady=5)
+
+        # Botones
+        def actualizar_contrasena():
+            actual = entry_actual.get()
+            nueva = entry_nueva.get()
+            repetir = entry_repetir.get()
+
+            conn = conexion_db()
+            if not conn:
+                return
+
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT contrasena FROM usuarios WHERE cedula = ?", (usuario_id,))
+                resultado = cursor.fetchone()
+
+                if not resultado or resultado[0] != actual:
+                    messagebox.showerror("Error", "La contraseña actual no coincide")
+                    return
+
+                if nueva != repetir:
+                    messagebox.showerror("Error", "Las nuevas contraseñas no coinciden")
+                    return
+
+                cursor.execute("UPDATE usuarios SET contrasena = ? WHERE cedula = ?", (nueva, usuario_id))
+                conn.commit()
+                messagebox.showinfo("Éxito", "Contraseña actualizada con éxito")
+                cargar_administracion_usuarios()
+            except sqlite3.Error as e:
+                messagebox.showerror("Error", f"Error al actualizar la contraseña: {e}")
+            finally:
+                conn.close()
+
+        Button(frame_contenido, text="Actualizar", font=("Segoe UI", 12), bg="#bae8e8", command=actualizar_contrasena).pack(pady=10)
+        Button(frame_contenido, text="Cancelar", font=("Segoe UI", 12), bg="#ff6f61", command=cargar_administracion_usuarios).pack(pady=10)
     # Función: Eliminar usuario (borrado lógico)
     def eliminar_usuario(tabla):
         seleccion = tabla.selection()
