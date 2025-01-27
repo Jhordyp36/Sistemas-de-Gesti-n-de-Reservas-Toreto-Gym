@@ -1,21 +1,20 @@
 import os
-from tkinter import CENTER, Button, Frame, Label, Menu, PhotoImage, Tk, messagebox
+from tkinter import CENTER, Button, Frame, Label, PhotoImage, Tk
 from config.config import ICONS_DIR, IMAGES_DIR
 from src.utils.helpers import cargar_icono
 from src.navegacion import navegar_a_iniciar_sesion
-from src.clases_Entrenadores import ventana_ClasesEntrenadores
-from src.membresias_pagos import ventana_membresiaspagos_administrador, ventana_membresiaspagos_usuario
-from src.gestion_equipos import ventana_GestionEquipos
-from src.reportes_estadisticas import ventana_ReportesEstadisticas_usuario, ventana_ReportesEstadisticas_administrador
-from src.reservas import ventana_reservas_administrador, ventana_reservas_usuario
+from src.membresias import ventana_membresias
+from src.servicios import ventana_clases_entrenadores
+from src.pagos_facturacion import ventana_pagos_facturacion
 from src.administracion_sistema import ventana_administracion
+from src.gestion_equipos import ventana_gestion_equipos
 
-def crear_ventana_principal(rol):
+def crear_ventana_principal(rol, usuario):
     # Configuración de la ventana principal
     ventana_principal = Tk()
     ventana_principal.title("Sistemas de Gestión de Reservas Toreto Gym")
     ventana_principal.state('zoomed')  # Pantalla completa
-    ventana_principal.configure(bg="#272643")  # Fondo oscuro similar al segundo ejemplo
+    ventana_principal.configure(bg="#272643")  # Fondo oscuro
 
     # Cargar el ícono
     cargar_icono(ventana_principal, os.path.join(ICONS_DIR, "Icono.ico"))
@@ -26,81 +25,38 @@ def crear_ventana_principal(rol):
     label_imagen.place(x=0, y=0, relwidth=1)
 
     # Etiqueta de bienvenida (se coloca debajo de la imagen)
-    label = Label(ventana_principal, text=f"Bienvenido, {rol}", font=("Segoe UI", 18, "bold"), bg="#272643", fg="white")
+    label = Label(ventana_principal, text=f"Bienvenido, {usuario}", font=("Segoe UI", 18, "bold"), bg="#272643", fg="white")
     label.place(relx=0.5, rely=0.2, anchor=CENTER)
-
-    # Crear barra de menú
-    barra_menu = Menu(ventana_principal, bg="#2c698d", fg="white")
-    ventana_principal.config(menu=barra_menu)
 
     # Frame para organizar los botones (centrado)
     frame_botones = Frame(ventana_principal, bg="#2c698d", padx=10, pady=10)
     frame_botones.place(relx=0.5, rely=0.5, anchor=CENTER)  # Centrado en el medio de la ventana
 
     # Funciones de los botones
-    def abrir_administracion():
-        ventana_principal.destroy()  # Cierra la ventana principal
-        ventana_administracion(lambda: crear_ventana_principal(rol))
-
-    def abrir_reservas():
-        ventana_principal.destroy()  # Cierra la ventana principal
-        if rol == "Administrador":
-            ventana_reservas_administrador(lambda: crear_ventana_principal(rol))
-        else:
-            ventana_reservas_usuario(lambda: crear_ventana_principal(rol))
-
-    def abrir_clases_y_entrenadores():
-        ventana_principal.destroy()  # Cierra la ventana principal
-        ventana_ClasesEntrenadores(lambda: crear_ventana_principal(rol))
-
     def abrir_membresias():
-        ventana_principal.destroy()  # Cierra la ventana principal
-        if rol == "Administrador":
-            ventana_membresiaspagos_administrador(lambda: crear_ventana_principal(rol))
-        else:
-            ventana_membresiaspagos_usuario(lambda: crear_ventana_principal(rol))
+        ventana_principal.destroy()
+        ventana_membresias(usuario, lambda: crear_ventana_principal(rol, usuario))
 
-    def abrir_equipos():
-        ventana_principal.destroy()  # Cierra la ventana principal
-        ventana_GestionEquipos(lambda: crear_ventana_principal(rol))
+    def abrir_servicios():
+        ventana_principal.destroy()
+        ventana_clases_entrenadores(lambda: crear_ventana_principal(rol, usuario))
 
-    def abrir_reportes():
-        ventana_principal.destroy()  # Cierra la ventana principal
-        if rol == "Administrador":
-            ventana_ReportesEstadisticas_administrador(lambda: crear_ventana_principal(rol))
-        else:
-            ventana_ReportesEstadisticas_usuario(lambda: crear_ventana_principal(rol))
+    def abrir_pagos_facturacion():
+        ventana_principal.destroy()
+        ventana_pagos_facturacion(lambda: crear_ventana_principal(rol, usuario))
 
+    def abrir_administracion():
+        ventana_principal.destroy()
+        ventana_administracion(usuario, lambda: crear_ventana_principal(rol, usuario))
 
-    # Menú de soporte (siempre visible)
-    menu_soporte = Menu(barra_menu, tearoff=0)
-    barra_menu.add_cascade(label="Soporte", menu=menu_soporte)
-    menu_soporte.add_command(label="Ayuda", command=lambda: messagebox.showinfo("Soporte", "¡Estamos en proceso!"))
+    def abrir_gestion_equipos():
+        ventana_principal.destroy()
+        ventana_gestion_equipos(lambda: crear_ventana_principal(rol, usuario))
 
-    # Menú de Administración del Sistema (solo para administrador)
-    if rol == "Administrador":
-        menu_configuracion = Menu(barra_menu, tearoff=0)
-        barra_menu.add_cascade(label="Administración del Sistema", menu=menu_configuracion)
-        menu_configuracion.add_command(label="Opciones", command=abrir_administracion)
-
-    # Creación de botones comunes
-    boton_reservas = Button(
-        frame_botones,
-        text="Reservas",
-        font=("Segoe UI", 12),
-        width=20,
-        height=2,
-        bg="#bae8e8",
-        fg="black",
-        command=abrir_reservas,
-        relief="groove",
-        bd=2
-    )
-    boton_reservas.grid(row=0, column=0, padx=10, pady=10)
-
+    # Creación de botones nuevos
     boton_membresias = Button(
         frame_botones,
-        text="Membresías y Pagos",
+        text="Membresías",
         font=("Segoe UI", 12),
         width=20,
         height=2,
@@ -110,55 +66,77 @@ def crear_ventana_principal(rol):
         relief="groove",
         bd=2
     )
-    boton_membresias.grid(row=1, column=0, padx=10, pady=10)
+    boton_membresias.grid(row=0, column=0, padx=10, pady=10)
 
-    boton_reportes = Button(
+    boton_servicios = Button(
         frame_botones,
-        text="Reportes y Estadísticas",
+        text="Servicios",
         font=("Segoe UI", 12),
         width=20,
         height=2,
         bg="#bae8e8",
         fg="black",
-        command=abrir_reportes,
+        command=abrir_servicios,
         relief="groove",
         bd=2
     )
-    boton_reportes.grid(row=2, column=0, padx=10, pady=10)
+    boton_servicios.grid(row=0, column=1, padx=10, pady=10)
 
-    # Botones exclusivos para administrador
-    if rol == "Administrador":
-        boton_clases = Button(
-            frame_botones,
-            text="Clases y Entrenadores",
-            font=("Segoe UI", 12),
-            width=20,
-            height=2,
-            bg="#bae8e8",
-            fg="black",
-            command=abrir_clases_y_entrenadores,
-            relief="groove",
-            bd=2
-        )
-        boton_clases.grid(row=0, column=1, padx=10, pady=10)
+    boton_pagos_facturacion = Button(
+        frame_botones,
+        text="Pagos y Facturación",
+        font=("Segoe UI", 12),
+        width=20,
+        height=2,
+        bg="#bae8e8",
+        fg="black",
+        command=abrir_pagos_facturacion,
+        relief="groove",
+        bd=2
+    )
+    boton_pagos_facturacion.grid(row=1, column=0, padx=10, pady=10)
 
-        boton_equipos = Button(
-            frame_botones,
-            text="Gestión de Equipos",
-            font=("Segoe UI", 12),
-            width=20,
-            height=2,
-            bg="#bae8e8",
-            fg="black",
-            command=abrir_equipos,
-            relief="groove",
-            bd=2
-        )
-        boton_equipos.grid(row=1, column=1, padx=10, pady=10)
+    boton_administracion = Button(
+        frame_botones,
+        text="Administración del Sistema",
+        font=("Segoe UI", 12),
+        width=20,
+        height=2,
+        bg="#bae8e8",
+        fg="black",
+        command=abrir_administracion,
+        relief="groove",
+        bd=2
+    )
+    boton_administracion.grid(row=1, column=1, padx=10, pady=10)
+
+    boton_gestion_equipos = Button(
+        frame_botones,
+        text="Gestión de Equipos",
+        font=("Segoe UI", 12),
+        width=20,
+        height=2,
+        bg="#bae8e8",
+        fg="black",
+        command=abrir_gestion_equipos,
+        relief="groove",
+        bd=2
+    )
+    boton_gestion_equipos.grid(row=2, column=0, padx=10, pady=10)
 
     # Botón de cerrar sesión dentro del frame_botones
-    boton_cerrar = Button(frame_botones, text="Cerrar sesión", font=("Segoe UI", 12, "bold"), width=20, height=2, bg="#e3f6f5", fg="black",
-                          command=lambda: ventana_principal.destroy() or navegar_a_iniciar_sesion(), relief="groove", bd=2)
+    boton_cerrar = Button(
+        frame_botones,
+        text="Cerrar sesión",
+        font=("Segoe UI", 12, "bold"),
+        width=20,
+        height=2,
+        bg="#e3f6f5",
+        fg="black",
+        command=lambda: ventana_principal.destroy() or navegar_a_iniciar_sesion(),
+        relief="groove",
+        bd=2
+    )
     boton_cerrar.grid(row=3, column=0, columnspan=2, pady=20)  # Se pone en una nueva fila
 
     ventana_principal.mainloop()

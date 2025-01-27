@@ -17,19 +17,19 @@ def verificar_login(campo_usuario, campo_contrasena, campo_rol, login):
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM usuarios WHERE usuario = ? AND contrasena = ? AND rol = ?", (usuario, contrasena, rol))
+    cursor.execute("SELECT * FROM usuarios WHERE usuario = ? AND contrasena = ? AND rol = ? AND estado = 'A'", (usuario, contrasena, rol))
     resultado = cursor.fetchone()
 
     if resultado:
         # Registrar fecha y hora de inicio de sesión
         fecha_hora_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute("INSERT INTO logs (usuario, fecha_hora) VALUES (?, ?)", (usuario, fecha_hora_actual))
+        cursor.execute("INSERT INTO logs (usuario, fecha_hora, accion) VALUES (?, ?, 'Login')", (usuario, fecha_hora_actual))
         conn.commit()
 
         messagebox.showinfo("Login exitoso", "¡Bienvenido!")
         conn.close()
         login.destroy()
-        navegar_a_ventana_principal(rol)
+        navegar_a_ventana_principal(rol, usuario)
     else:
         intentos_restantes -= 1
         global label_intentos
@@ -84,8 +84,8 @@ def crear_ventana_iniciar_sesion():
 
     # Campo de Rol
     Label(frame_campos, text="Rol:", font=default_font, bg="#272643", fg="#ffffff").grid(row=0, column=0, sticky="w", padx=10, pady=5)
-    rol_seleccionado = tk.StringVar(value="Usuario")
-    roles = ["Administrador", "Usuario"]
+    rol_seleccionado = tk.StringVar(value="Cliente")
+    roles = ["Administrador", "Cliente"]
     campo_rol = tk.OptionMenu(frame_campos, rol_seleccionado, *roles)
     campo_rol.config(font=default_font)
     campo_rol.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
